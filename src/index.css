@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #0f0f0f;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #353535;
+  }
+}
+
+@layer components {
+  .nomad-card {
+    @apply bg-nomad-card border border-nomad-border rounded-xl transition-all duration-200;
+  }
+  .nomad-card-hover {
+    @apply hover:border-nomad-border-light hover:bg-nomad-card-hover;
+  }
+  .nomad-input {
+    @apply bg-nomad-bg-2 border border-nomad-border rounded-lg px-4 py-2.5 text-sm text-nomad-text placeholder:text-nomad-text-muted focus:outline-none focus:border-nomad-yellow transition-colors;
+  }
+  .nomad-button-primary {
+    @apply bg-nomad-yellow text-nomad-bg font-semibold rounded-lg px-4 py-2.5 text-sm hover:bg-nomad-yellow-light transition-colors flex items-center justify-center gap-2;
+  }
+  .nomad-button-secondary {
+    @apply bg-nomad-bg-2 border border-nomad-border text-nomad-text font-medium rounded-lg px-4 py-2.5 text-sm hover:bg-nomad-card hover:border-nomad-border-light transition-colors flex items-center justify-center gap-2;
+  }
+  .nomad-button-ghost {
+    @apply text-nomad-text-dim hover:text-nomad-text hover:bg-nomad-card transition-colors rounded-lg px-3 py-2 text-sm flex items-center gap-2;
+  }
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .nomad-card {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    color: black !important;
+  }
+}
