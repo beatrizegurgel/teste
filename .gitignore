@@ -7,3 +7,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Dados e uploads gerados em runtime pelos microserviços
+services/*/data/
+services/*/storage/
+*.db
+*.db-shm
+*.db-wal
+
+# Variáveis de ambiente
+.env

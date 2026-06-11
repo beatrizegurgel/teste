@@ -1,0 +1,18 @@
+{
+  "name": "@nomad/files-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Files-service — upload e download seguro de artes, vídeos e PDFs",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1"
+  }
+}

@@ -1,0 +1,22 @@
+# Blueprint de deploy para o Render (https://render.com) — plano gratuito.
+# Como usar:
+#   1. Crie uma conta no Render e conecte sua conta do GitHub.
+#   2. New + → "Blueprint" → selecione o repositório beatrizegurgel/teste
+#      e a branch claude/dreamy-davinci-16t8ed.
+#   3. O Render lê este arquivo, builda e publica. Você recebe uma URL pública.
+#
+# Observação: no plano gratuito o disco é efêmero — os dados de demonstração
+# são recriados automaticamente a cada reinício (seed), o que é ótimo para
+# demonstrar o produto.
+services:
+  - type: web
+    name: nomad-content
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_VERSION
+        value: "22"

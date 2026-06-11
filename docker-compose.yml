@@ -1,0 +1,68 @@
+# Orquestração opcional dos microserviços NOMAD.
+# Uso: docker compose up --build
+# (O caminho recomendado para desenvolvimento é `npm install && npm run dev`.)
+services:
+  auth:
+    build: .
+    command: npm run start -w services/auth
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-nomad-dev-secret-change-me}
+      - AUTH_PORT=4001
+    volumes:
+      - auth-data:/app/services/auth/data
+    ports:
+      - "4001:4001"
+
+  posts:
+    build: .
+    command: npm run start -w services/posts
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-nomad-dev-secret-change-me}
+      - POSTS_PORT=4002
+    volumes:
+      - posts-data:/app/services/posts/data
+    ports:
+      - "4002:4002"
+
+  files:
+    build: .
+    command: npm run start -w services/files
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-nomad-dev-secret-change-me}
+      - FILES_PORT=4003
+    volumes:
+      - files-data:/app/services/files/data
+      - files-storage:/app/services/files/storage
+    ports:
+      - "4003:4003"
+
+  gateway:
+    build: .
+    command: npm run start -w services/gateway
+    environment:
+      - GATEWAY_PORT=4000
+      - AUTH_URL=http://auth:4001
+      - POSTS_URL=http://posts:4002
+      - FILES_URL=http://files:4003
+    depends_on:
+      - auth
+      - posts
+      - files
+    ports:
+      - "4000:4000"
+
+  web:
+    build: .
+    command: npm run dev -w frontend
+    environment:
+      - GATEWAY_URL=http://gateway:4000
+    depends_on:
+      - gateway
+    ports:
+      - "5173:5173"
+
+volumes:
+  auth-data:
+  posts-data:
+  files-data:
+  files-storage:

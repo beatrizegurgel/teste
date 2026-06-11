@@ -1,49 +1,148 @@
-# NOMAD — Área do Cliente
+# NOMAD — Plataforma de Conteúdo
 
-Portal web para clientes da agência NOMAD acompanharem o trabalho sendo feito. Construído com React + Vite + Tailwind.
+Plataforma em nuvem para a agência **NOMAD** gerenciar a aprovação de conteúdo
+dos seus clientes. O time da NOMAD sobe artes, vídeos e PDFs em um calendário e
+associa cada peça a uma data; cada cliente faz login e vê **apenas** o
+calendário da sua própria empresa, podendo **aprovar, reprovar, comentar** ou
+**baixar** o material.
 
-## Rodando
+A arquitetura é de **microserviços** com **API gateway**, **autenticação JWT**,
+**armazenamento de arquivos** e **front-end React responsivo** com calendário
+interativo.
+
+```
+┌──────────────┐      /api/*       ┌───────────────┐
+│  Front-end   │  ───────────────► │  API Gateway  │  (porta 4000)
+│  React+Vite  │                   └──────┬────────┘
+│  (porta 5173)│            ┌─────────────┼──────────────┐
+└──────────────┘            ▼             ▼              ▼
+                      ┌───────────┐ ┌───────────┐ ┌────────────┐
+                      │   auth    │ │   posts   │ │   files    │
+                      │  (4001)   │ │  (4002)   │ │   (4003)   │
+                      │ JWT, users│ │ calendário│ │ upload/    │
+                      │ empresas  │ │ aprovação │ │ download   │
+                      └─────┬─────┘ └─────┬─────┘ └─────┬──────┘
+                         auth.db       posts.db    files.db + disco
+```
+
+## Como rodar
+
+Requer Node 18+ (testado no Node 22). Um único `npm install` instala todos os
+workspaces (frontend + serviços).
 
 ```bash
 npm install
 npm run dev
 ```
 
-Aplicação sobe em `http://localhost:5173`.
+- Front-end: http://localhost:5173
+- Gateway (API): http://localhost:4000/api
+- Os bancos SQLite e a pasta de uploads são criados automaticamente no primeiro
+  boot, já com **dados de demonstração**.
+
+Para limpar tudo e recriar o seed:
+
+```bash
+npm run reset
+```
+
+### Produção (tudo em uma única porta)
+
+Para hospedar a aplicação inteira atrás de **uma única URL**, o `server.js`
+roda os microserviços no mesmo processo e serve o front-end compilado:
+
+```bash
+npm run build   # gera frontend/dist
+npm start       # sobe tudo em http://localhost:4000 (ou process.env.PORT)
+```
+
+### Publicar online (deploy)
+
+O repositório já inclui um blueprint do **Render** (`render.yaml`, plano
+gratuito):
+
+1. Crie uma conta em https://render.com e conecte sua conta do GitHub.
+2. **New + → Blueprint** → selecione este repositório e a branch.
+3. O Render builda (`npm install && npm run build`) e publica (`npm start`),
+   devolvendo uma **URL pública** clicável.
+
+Funciona da mesma forma em qualquer host Node (Railway, Fly.io, etc.):
+build = `npm install && npm run build`, start = `npm start`. Defina um
+`JWT_SECRET` forte nas variáveis de ambiente.
+
+### Docker (opcional)
+
+```bash
+docker compose up --build
+```
+
+## Contas de demonstração
+
+| Papel             | E-mail               | Senha       | Vê o quê |
+|-------------------|----------------------|-------------|----------|
+| **Time NOMAD**    | `admin@nomad.studio` | `nomad123`  | Painel de controle: todos os clientes e posts |
+| Cliente (Bella)   | `cliente@bella.com`  | `cliente123`| Apenas o calendário da Clínica Estética Bella |
+| Cliente (Verde)   | `cliente@verde.com`  | `cliente123`| Apenas o calendário do Mercado Verde Orgânicos |
+
+Na tela de login há botões para preencher essas credenciais com um clique.
+Você também pode **cadastrar uma nova empresa** pela tela de registro.
+
+## Papéis e permissões
+
+- **Time NOMAD (admin)** — controle total: cria/edita/exclui posts, faz upload
+  de artes/vídeos/PDFs, associa cada arquivo a uma data, gerencia empresas e
+  enxerga o calendário de todos os clientes.
+- **Cliente** — vê somente o calendário da própria empresa. Em cada post pode
+  **aprovar**, **reprovar** (com justificativa), **comentar** o feedback e
+  **baixar** o arquivo. Rascunhos da agência ficam ocultos para o cliente.
+
+O isolamento por empresa é garantido **no servidor**: o posts-service e o
+files-service derivam o `clientId` do token JWT e nunca retornam dados de outra
+empresa, mesmo que a requisição tente forçar outro `clientId`.
+
+## Microserviços
+
+| Serviço   | Porta | Responsabilidade |
+|-----------|-------|------------------|
+| `gateway` | 4000  | Ponto único de entrada; roteia `/api/auth`, `/api/posts`, `/api/stats`, `/api/files` |
+| `auth`    | 4001  | Cadastro, login, emissão/validação de JWT, empresas e usuários |
+| `posts`   | 4002  | Posts do calendário, fluxo de aprovação, comentários e estatísticas |
+| `files`   | 4003  | Upload e download seguro de artes, vídeos e PDFs (disco + metadados) |
+
+Cada serviço valida o JWT por conta própria (defesa em profundidade) usando o
+mesmo `JWT_SECRET`.
+
+## Principais endpoints (via gateway, prefixo `/api`)
+
+```
+POST /api/auth/register           cadastro de empresa + usuário cliente
+POST /api/auth/login              login (cliente ou NOMAD)
+GET  /api/auth/me                 dados do usuário autenticado
+GET  /api/auth/clients            (admin) lista empresas
+POST /api/auth/clients            (admin) cria empresa + acesso opcional
+
+GET  /api/posts                   lista posts (cliente: só os seus)
+POST /api/posts                   (admin) cria post
+PUT  /api/posts/:id               (admin) edita post
+DELETE /api/posts/:id             (admin) exclui post
+POST /api/posts/:id/approve       (cliente) aprova
+POST /api/posts/:id/reject        (cliente) reprova com justificativa
+POST /api/posts/:id/comment       comenta / dá feedback
+GET  /api/stats/overview          (admin) números do painel
+
+POST /api/files                   (admin) upload (multipart "file")
+GET  /api/files/:id               download/preview (com checagem de acesso)
+```
 
 ## Stack
 
-- **React 18** + **Vite**
-- **Tailwind CSS** (design system NOMAD customizado)
-- **Recharts** (gráficos de linha, barras, pizza e sparklines)
-- **Lucide React** (ícones)
-- **React Router** (navegação)
-- **LocalStorage** (persistência — sem backend)
+- **Backend:** Node.js, Express, JWT (`jsonwebtoken`), `bcryptjs`,
+  `better-sqlite3`, `multer`, `http-proxy-middleware`
+- **Frontend:** React 18, Vite, React Router, Tailwind CSS, Lucide
+- **Infra:** npm workspaces, Docker / docker-compose
 
-## Páginas
+## Configuração
 
-1. **Visão Geral** — Dashboard com KPIs, evolução de 3 meses, status do mês, atividades recentes e próximos entregáveis.
-2. **Plano de Marketing** — Timeline trimestral M1/M2/M3, posicionamento, público-alvo e pizza de verba por canal.
-3. **Planos de Ação** — CRUD completo com filtros por status e prioridade.
-4. **Resultados do Mês** — Seletor de mês, KPIs com comparativo Meta x Realizado, análise do CS, conquistas e próximos passos. Exportação print-friendly.
-5. **Campanhas Ativas** — Lista com sparklines, filtros por canal e status.
-6. **Reuniões & Comunicados** — Timeline cronológica, comunicados e formulário de solicitação.
-7. **Documentos** — Biblioteca organizada por categoria com busca e upload simulado.
-8. **Calendário de Conteúdo** — Grid mensal navegável com fluxo completo de aprovação (drawer lateral, histórico, aprovação em lote, visão em lista).
-
-## Dados Mockados
-
-No primeiro carregamento, o `localStorage` é populado com dados realistas da **Clínica Estética Bella**:
-
-- ROAS 4.8x, R$ 5.000/mês de investimento, 142 leads, CPL R$ 35,21
-- 3 campanhas ativas (Meta, Google, TikTok) + 1 pausada
-- 3 planos de ação (2 em execução + 1 concluído)
-- 20 posts no calendário do mês (8 aprovados, 5 aguardando, 2 reprovados com feedback, 3 publicados, 2 rascunhos)
-- 2 reuniões registradas + comunicados da agência
-- 8 documentos em 5 categorias
-
-Há 3 clientes mockados para testar a troca de contexto (dropdown no header).
-
-## Reset de dados
-
-O botão de refresh no header restaura o seed inicial.
+Variáveis de ambiente (com padrões de desenvolvimento) estão documentadas em
+`.env.example`. Em produção, defina ao menos um `JWT_SECRET` forte e idêntico em
+todos os serviços.
