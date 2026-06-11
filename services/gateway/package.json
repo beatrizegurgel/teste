@@ -1,0 +1,16 @@
+{
+  "name": "@nomad/gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API Gateway — ponto único de entrada que roteia para os microserviços",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}
