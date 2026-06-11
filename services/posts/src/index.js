@@ -114,4 +114,8 @@ stats.get('/overview', requireAuth, requireAdmin, (_req, res) => {
 app.use('/posts', posts)
 app.use('/stats', stats)
 
-app.listen(PORT, () => console.log(`[posts]    http://localhost:${PORT}`))
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`[posts]    http://localhost:${PORT}`))
+}
+
+module.exports = { app, postsRouter: posts, statsRouter: stats }

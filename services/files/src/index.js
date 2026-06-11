@@ -72,11 +72,16 @@ router.get('/:id', requireAuth, (req, res) => {
   fs.createReadStream(full).pipe(res)
 })
 
-app.use('/files', router)
-
-// Tratamento de erros do multer (ex.: arquivo grande demais).
-app.use((err, _req, res, _next) => {
+// Tratamento de erros do multer (ex.: arquivo grande demais) no nível do
+// router, para funcionar tanto standalone quanto no server.js combinado.
+router.use((err, _req, res, _next) => {
   if (err) return res.status(400).json({ error: err.message || 'Falha no upload' })
 })
 
-app.listen(PORT, () => console.log(`[files]    http://localhost:${PORT}  (max ${MAX_UPLOAD_MB}MB)`))
+app.use('/files', router)
+
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`[files]    http://localhost:${PORT}  (max ${MAX_UPLOAD_MB}MB)`))
+}
+
+module.exports = { app, router }

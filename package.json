@@ -14,9 +14,17 @@
     "dev:posts": "npm run dev -w services/posts",
     "dev:files": "npm run dev -w services/files",
     "dev:web": "npm run dev -w frontend",
-    "start": "concurrently -k -n auth,posts,files,gateway -c green,magenta,yellow,blue \"npm:start -w services/auth\" \"npm:start -w services/posts\" \"npm:start -w services/files\" \"npm:start -w services/gateway\"",
     "build": "npm run build -w frontend",
+    "start": "node server.js",
+    "start:micro": "concurrently -k -n auth,posts,files,gateway -c green,magenta,yellow,blue \"npm:start -w services/auth\" \"npm:start -w services/posts\" \"npm:start -w services/files\" \"npm:start -w services/gateway\"",
     "reset": "node scripts/reset.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

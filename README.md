@@ -46,6 +46,30 @@ Para limpar tudo e recriar o seed:
 npm run reset
 ```
 
+### Produção (tudo em uma única porta)
+
+Para hospedar a aplicação inteira atrás de **uma única URL**, o `server.js`
+roda os microserviços no mesmo processo e serve o front-end compilado:
+
+```bash
+npm run build   # gera frontend/dist
+npm start       # sobe tudo em http://localhost:4000 (ou process.env.PORT)
+```
+
+### Publicar online (deploy)
+
+O repositório já inclui um blueprint do **Render** (`render.yaml`, plano
+gratuito):
+
+1. Crie uma conta em https://render.com e conecte sua conta do GitHub.
+2. **New + → Blueprint** → selecione este repositório e a branch.
+3. O Render builda (`npm install && npm run build`) e publica (`npm start`),
+   devolvendo uma **URL pública** clicável.
+
+Funciona da mesma forma em qualquer host Node (Railway, Fly.io, etc.):
+build = `npm install && npm run build`, start = `npm start`. Defina um
+`JWT_SECRET` forte nas variáveis de ambiente.
+
 ### Docker (opcional)
 
 ```bash

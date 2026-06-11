@@ -96,4 +96,10 @@ router.post('/users', requireAuth, requireAdmin, (req, res) => {
 
 app.use('/auth', router)
 
-app.listen(PORT, () => console.log(`[auth]     http://localhost:${PORT}`))
+// Standalone (microserviço) quando executado diretamente; em produção o
+// server.js combinado importa apenas o `router`.
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`[auth]     http://localhost:${PORT}`))
+}
+
+module.exports = { app, router }
